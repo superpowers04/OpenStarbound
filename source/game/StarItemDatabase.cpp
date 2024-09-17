@@ -152,9 +152,9 @@ void ItemDatabase::cleanup() {
 ItemPtr ItemDatabase::diskLoad(Json const& diskStore) const {
   if (diskStore) {
     return item(ItemDescriptor::loadStore(diskStore));
-  } else {
-    return {};
   }
+  return {};
+  
 }
 
 ItemPtr ItemDatabase::fromJson(Json const& spec) const {
@@ -164,15 +164,13 @@ ItemPtr ItemDatabase::fromJson(Json const& spec) const {
 Json ItemDatabase::diskStore(ItemConstPtr const& itemPtr) const {
   if (itemPtr)
     return itemPtr->descriptor().diskStore();
-  else
-    return Json();
+  return Json();
 }
 
 Json ItemDatabase::toJson(ItemConstPtr const& itemPtr) const {
   if (itemPtr)
     return itemPtr->descriptor().toJson();
-  else
-    return Json();
+  return Json();
 }
 
 bool ItemDatabase::hasItem(String const& itemName) const {
@@ -326,10 +324,14 @@ ItemRecipe ItemDatabase::getPreciseRecipeForMaterials(String const& group, List<
     for (auto const& item : bag) {
       bool match = false;
       for (auto const& input : recipe.inputs)
-        if (item->matches(input, recipe.matchInputParameters))
+        if (item->matches(input, recipe.matchInputParameters)){
           match = true;
-      if (!match)
+          break;
+        }
+      if (!match){
         usesAllItemTypes = false;
+      	break;
+      }
     }
     if (!usesAllItemTypes)
       continue;
@@ -531,9 +533,11 @@ void ItemDatabase::addItemSet(ItemType type, String const& extension) {
     ItemData data;
     try {
       auto config = assets->json(file);
+      data.name = config.get("itemName").toString();
+      if (m_items.contains(data.name))
+        throw ItemException(strf("Duplicate item name '{}' found", data.name));
       data.type = type;
       data.assetsConfig = file;
-      data.name = config.get("itemName").toString();
       data.friendlyName = config.getString("shortdescription", {});
       data.itemTags = config.opt("itemTags").apply(jsonToStringSet).value();
       data.agingScripts = config.opt("itemAgingScripts").apply(jsonToStringList).value();
@@ -544,8 +548,7 @@ void ItemDatabase::addItemSet(ItemType type, String const& extension) {
       throw ItemException(strf("Could not load item asset {}", file), e);
     }
 
-    if (m_items.contains(data.name))
-      throw ItemException(strf("Duplicate item name '{}' found", data.name));
+
 
     m_items[data.name] = data;
   }
@@ -555,8 +558,10 @@ void ItemDatabase::addObjectDropItem(String const& objectPath, Json const& objec
   auto assets = Root::singleton().assets();
 
   ItemData data;
-  data.type = ItemType::ObjectItem;
   data.name = objectConfig.get("objectName").toString();
+  if (m_items.contains(data.name))
+    throw ItemException(strf("Object drop '{}' shares name with existing item", data.name));
+  data.type = ItemType::ObjectItem;
   data.friendlyName = objectConfig.getString("shortdescription", {});
   data.itemTags = objectConfig.opt("itemTags").apply(jsonToStringSet).value();
   data.agingScripts = objectConfig.opt("itemAgingScripts").apply(jsonToStringList).value();
@@ -580,8 +585,6 @@ void ItemDatabase::addObjectDropItem(String const& objectPath, Json const& objec
 
   data.customConfig = std::move(customConfig);
 
-  if (m_items.contains(data.name))
-    throw ItemException(strf("Object drop '{}' shares name with existing item", data.name));
 
   m_items[data.name] = std::move(data);
 }

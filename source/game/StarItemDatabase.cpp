@@ -65,9 +65,9 @@ uint64_t ItemDatabase::getCountOfItem(HashMap<ItemDescriptor, uint64_t> const& b
   ItemDescriptor matchItem = exactMatch ? item.singular() : ItemDescriptor(item.name(), 1);
   if (!bag.contains(matchItem)) {
     return 0;
-  } else {
-    return bag.get(matchItem);
   }
+  return bag.get(matchItem);
+  
 }
 
 HashMap<ItemDescriptor, uint64_t> ItemDatabase::normalizeBag(List<ItemPtr> const& bag) {
@@ -219,22 +219,21 @@ ItemPtr ItemDatabase::itemShared(ItemDescriptor descriptor, Maybe<float> level, 
   MutexLocker locker(m_cacheMutex);
   if (ItemPtr* cached = m_itemCache.ptr(entry))
     return *cached;
-  else {
-    locker.unlock();
+  
+  locker.unlock();
 
-    ItemPtr item = tryCreateItem(descriptor, level, seed);
-    get<2>(entry) = item->parameters().optUInt("seed"); // Seed could've been changed by the buildscript
+  ItemPtr item = tryCreateItem(descriptor, level, seed);
+  get<2>(entry) = item->parameters().optUInt("seed"); // Seed could've been changed by the buildscript
 
-    locker.lock();
-    return m_itemCache.get(entry, [&](ItemCacheEntry const&) -> ItemPtr { return std::move(item); });
-  }
+  locker.lock();
+  return m_itemCache.get(entry, [&](ItemCacheEntry const&) -> ItemPtr { return std::move(item); });
+  
 }
 
 ItemPtr ItemDatabase::item(ItemDescriptor descriptor, Maybe<float> level, Maybe<uint64_t> seed, bool ignoreInvalid) const {
   if (!descriptor)
     return {};
-  else
-    return tryCreateItem(descriptor, level, seed, ignoreInvalid);
+  return tryCreateItem(descriptor, level, seed, ignoreInvalid);
 }
 
 bool ItemDatabase::hasRecipeToMake(ItemDescriptor const& item) const {

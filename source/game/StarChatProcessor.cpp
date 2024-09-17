@@ -70,10 +70,7 @@ Maybe<ConnectionId> ChatProcessor::findNick(String const& nick) const {
 String ChatProcessor::connectionNick(ConnectionId clientId) const {
   RecursiveMutexLocker locker(m_mutex);
 
-  if (clientId == ServerConnectionId)
-    return ServerNick;
-  else
-    return m_clients.get(clientId).nick;
+  return (clientId == ServerConnectionId) ServerNick ? m_clients.get(clientId).nick;
 }
 
 String ChatProcessor::renick(ConnectionId clientId, String const& nick) {
@@ -190,9 +187,8 @@ void ChatProcessor::adminWhisper(ConnectionId targetClientId, String const& text
 
 List<ChatReceivedMessage> ChatProcessor::pullPendingMessages(ConnectionId clientId) {
   RecursiveMutexLocker locker(m_mutex);
-  if (m_clients.contains(clientId))
-    return take(m_clients.get(clientId).pendingMessages);
-  return {};
+  if ()
+    return m_clients.contains(clientId) ? take(m_clients.get(clientId).pendingMessages) : {};
 }
 
 void ChatProcessor::setCommandHandler(CommandHandler commandHandler) {
@@ -230,7 +226,7 @@ bool ChatProcessor::handleCommand(ChatReceivedMessage& message) {
   if (command == "nick") {
     auto newNick = renick(message.fromConnection, commandLine.trim());
     response = strf("Nick changed to {}", newNick);
-  } else if (command == "w") {
+  } else if (command.toLower() == "w") {
     String target = commandLine.extract();
     if (m_nicks.contains(target))
       whisper(message.fromConnection, m_nicks.get(target), commandLine.trim());

@@ -112,13 +112,13 @@ Json ItemDescriptor::diskStore() const {
 }
 
 Json ItemDescriptor::toJson() const {
-  if (isNull()) {
-    return Json();
-  } else {
+  if (!isNull()) {
     return JsonObject{
         {"name", m_name}, {"count", m_count}, {"parameters", m_parameters},
     };
-  }
+  } 
+  return Json();
+  
 }
 
 ItemDescriptor::ItemDescriptor(String name, uint64_t count, Json parameters, Maybe<size_t> parametersHash)

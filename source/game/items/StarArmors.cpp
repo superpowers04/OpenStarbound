@@ -14,10 +14,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   refreshStatusEffects();
   m_effectSources = jsonToStringSet(instanceValue("effectSources", JsonArray()));
   m_techModule = instanceValue("techModule", "").toString();
-  if (m_techModule->empty())
-    m_techModule = {};
-  else
-    m_techModule = AssetPath::relativeTo(directory, *m_techModule);
+  m_techModule = m_techModule->empty() ? {} : AssetPath::relativeTo(directory, *m_techModule);
 
   m_directives = instanceValue("directives", "").toString();
   m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
@@ -104,10 +101,8 @@ HeadArmor::HeadArmor(Json const& config, String const& directory, Json const& da
   m_femaleImage = AssetPath::relativeTo(directory, config.getString("femaleFrames"));
 
   String maskDirectivesStr = instanceValue("mask").toString();
-  if (!maskDirectivesStr.empty() && !maskDirectivesStr.contains("?"))
-    m_maskDirectives = "?addmask=" + AssetPath::relativeTo(directory, maskDirectivesStr) + ";0;0";
-  else
-    m_maskDirectives = maskDirectivesStr;
+  m_maskDirectives = (!maskDirectivesStr.empty() && !maskDirectivesStr.contains("?")) ? "?addmask=" + AssetPath::relativeTo(directory, maskDirectivesStr) + ";0;0" 
+    : m_maskDirectives = maskDirectivesStr;
 }
 
 ItemPtr HeadArmor::clone() const {
@@ -115,10 +110,7 @@ ItemPtr HeadArmor::clone() const {
 }
 
 String const& HeadArmor::frameset(Gender gender) const {
-  if (gender == Gender::Male)
-    return m_maleImage;
-  else
-    return m_femaleImage;
+  return (gender == Gender::Male) ? m_maleImage : m_femaleImage;
 }
 
 Directives const& HeadArmor::maskDirectives() const {
@@ -150,24 +142,15 @@ ItemPtr ChestArmor::clone() const {
 }
 
 String const& ChestArmor::bodyFrameset(Gender gender) const {
-  if (gender == Gender::Male)
-    return m_maleBodyImage;
-  else
-    return m_femaleBodyImage;
+  return (gender == Gender::Male) ? m_maleBodyImage : m_femaleBodyImage;
 }
 
 String const& ChestArmor::frontSleeveFrameset(Gender gender) const {
-  if (gender == Gender::Male)
-    return m_maleFrontSleeveImage;
-  else
-    return m_femaleFrontSleeveImage;
+  return (gender == Gender::Male) ? m_maleFrontSleeveImage : m_femaleFrontSleeveImage;
 }
 
 String const& ChestArmor::backSleeveFrameset(Gender gender) const {
-  if (gender == Gender::Male)
-    return m_maleBackSleeveImage;
-  else
-    return m_femaleBackSleeveImage;
+  return (gender == Gender::Male) ? m_maleBackSleeveImage : m_femaleBackSleeveImage;
 }
 
 List<Drawable> ChestArmor::preview(PlayerPtr const& viewer) const {
@@ -188,10 +171,7 @@ ItemPtr LegsArmor::clone() const {
 }
 
 String const& LegsArmor::frameset(Gender gender) const {
-  if (gender == Gender::Male)
-    return m_maleImage;
-  else
-    return m_femaleImage;
+  return (gender == Gender::Male) ? m_maleImage : m_femaleImage;
 }
 
 List<Drawable> LegsArmor::preview(PlayerPtr const& viewer) const {
@@ -212,10 +192,7 @@ ItemPtr BackArmor::clone() const {
 }
 
 String const& BackArmor::frameset(Gender gender) const {
-  if (gender == Gender::Male)
-    return m_maleImage;
-  else
-    return m_femaleImage;
+  return (gender == Gender::Male) ? m_maleImage : m_femaleImage;
 }
 
 List<Drawable> BackArmor::preview(PlayerPtr const& viewer) const {

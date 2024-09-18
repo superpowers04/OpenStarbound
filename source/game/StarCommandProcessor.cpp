@@ -1021,8 +1021,7 @@ Maybe<String> CommandProcessor::adminCheck(ConnectionId connectionId, String con
   auto config = Root::singleton().configuration();
   if (!config->get("allowAdminCommands").toBool())
     return {"Admin commands disabled on this server."};
-  if (!config->get("allowAdminCommandsFromAnyone").toBool()) {
-    if (!m_universe->isAdmin(connectionId))
+  if (!config->get("allowAdminCommandsFromAnyone").toBool() && !m_universe->isAdmin(connectionId)){
       return {strf("Insufficient privileges to {}.", commandDescription)};
   }
 

@@ -14,7 +14,10 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   refreshStatusEffects();
   m_effectSources = jsonToStringSet(instanceValue("effectSources", JsonArray()));
   m_techModule = instanceValue("techModule", "").toString();
-  m_techModule = m_techModule->empty() ? {} : AssetPath::relativeTo(directory, *m_techModule);
+  if (m_techModule->empty())
+    m_techModule = {};
+  else
+    m_techModule = AssetPath::relativeTo(directory, *m_techModule);
 
   m_directives = instanceValue("directives", "").toString();
   m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));

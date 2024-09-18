@@ -509,7 +509,6 @@ void Humanoid::resetAnimation() {
   m_emoteAnimationTimer = 0.0f;
   m_danceTimer = 0.0f;
 }
-
 List<Drawable> Humanoid::render(bool withItems, bool withRotationAndScale) {
   List<Drawable> drawables;
 
@@ -537,11 +536,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotationAndScale) {
     backArmFrameOffset += m_recoilOffset;
 
   auto addDrawable = [&](Drawable drawable, bool forceFullbright = false) {
-    if (m_facingDirection == Direction::Left)
-      drawable.scale(Vec2F(-1, 1));
-    drawable.fullbright |= forceFullbright;
-    drawables.append(std::move(drawable));
-  };
+      if(m_facingDirection == Direction::Left) drawable.scale(Vec2F(-1, 1));
+      drawable.fullbright |= forceFullbright;
+      drawables.append(std::move(drawable));
+    };
 
   auto backArmDrawable = [&](String const& frameSet, Directives const& directives) -> Drawable {
     String image = strf("{}:{}", frameSet, backHand.backFrame);

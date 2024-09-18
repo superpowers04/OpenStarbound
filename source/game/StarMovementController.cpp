@@ -332,9 +332,9 @@ bool MovementController::atWorldLimit(bool bottomOnly) const {
     if (!collisionPoly().isNull()) {
       auto bounds = collisionBoundBox();
       return bounds.yMin() <= 0 || (!bottomOnly && bounds.yMax() >= m_world->geometry().height());
+    } else {
+      return yPosition() <= 0 || (!bottomOnly && yPosition() >= m_world->geometry().height());
     }
-    return yPosition() <= 0 || (!bottomOnly && yPosition() >= m_world->geometry().height());
-    
   }
   return false;
 }
@@ -438,7 +438,9 @@ void MovementController::approachVelocityAlongAngle(float angle, float targetVel
 
   float velocityAlongAxis = velocity() * axis;
   float diff = targetVelocity - velocityAlongAxis;
-  if (diff == 0.0f || (positiveOnly && diff < 0))
+  if (diff == 0.0f)
+    return;
+  if (positiveOnly && diff < 0)
     return;
 
   float maximumAcceleration = maxControlForce / mass() * m_timeStep;
@@ -804,7 +806,11 @@ void MovementController::updateLiquidPercentage() {
   auto body = collisionBody();
   RectF boundBox = body.boundBox();
 
-  LiquidLevel cll = world()->liquidLevel(boundBox.isEmpty() ? Vec2I::floor(pos) : boundBox);
+  LiquidLevel cll;
+  if (boundBox.isEmpty())
+    cll = world()->liquidLevel(Vec2I::floor(pos));
+  else
+    cll = world()->liquidLevel(boundBox);
 
   m_liquidPercentage = clamp(cll.level, 0.0f, 1.0f);
   m_liquidId = cll.liquid;
@@ -839,7 +845,8 @@ World* MovementController::world() {
 CollisionKind MovementController::maxOrNullCollision(CollisionKind a, CollisionKind b) {
   if (a == CollisionKind::Null || b == CollisionKind::Null)
     return CollisionKind::Null;
-  return max(a, b);
+  else
+    return max(a, b);
 }
 
 MovementController::CollisionResult MovementController::collisionMove(List<CollisionPoly>& collisionPolys, PolyF const& body, Vec2F const& movement,
@@ -881,7 +888,8 @@ MovementController::CollisionResult MovementController::collisionMove(List<Colli
     if (separation.solutionFound)
       separation.solutionFound = upMag < SlideCorrectionLimit || angleHoriz < SlideAngle;
 
-    if (separation.solutionFound && totalCorrection.magnitude() > maximumCorrection){
+    if (separation.solutionFound) {
+      if (totalCorrection.magnitude() > maximumCorrection)
         separation.solutionFound = false;
     }
   }
@@ -1008,8 +1016,8 @@ MovementController::CollisionSeparation MovementController::collisionSeparate(Li
     else
       intersectResult = correctedPoly.satIntersection(cp.poly);
 
-    if ((cp.collisionKind == CollisionKind::Platform && intersectResult.intersects) 
-    	&& (intersectResult.overlap[1] <= 0 || intersectResult.overlap[1] > maximumPlatformCorrection))
+    if (cp.collisionKind == CollisionKind::Platform && intersectResult.intersects) {
+      if (intersectResult.overlap[1] <= 0 || intersectResult.overlap[1] > maximumPlatformCorrection)
         intersectResult.intersects = false;
     }
 
@@ -1068,7 +1076,8 @@ void MovementController::queryCollisions(RectF const& region) {
       return m_workingCollisions.emplaceAppend(CollisionPoly{
           m_collisionBuffers.takeLast(), {}, {}, {}, {}, {}
         });
-    return m_workingCollisions.emplaceAppend(CollisionPoly{});
+    else
+      return m_workingCollisions.emplaceAppend(CollisionPoly{});
   };
 
   auto geometry = world()->geometry();
